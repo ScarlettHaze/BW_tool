@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Created by SharpDevelop.
  * User: sergi
  * Date: 15/06/2016
@@ -405,18 +405,18 @@ namespace BW_tool
 			if (world < 8)
 			{
 				//Handle forms
+				int anim = form_anim(gender);
 				if (world == 2 && (speciesbox.SelectedIndex == 25 || speciesbox.SelectedIndex == 36 )) //Blue basculin, East Sea shellos
-					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 1, random_form_anim());
+					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 1, anim);
 				else
-					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 0, random_form_anim());
+					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 0, anim);
 			}
 			else if (world == 8)
 			{
-				int anim = 0;
-				//Random animation disabled and set to 0, as I've seen several PGL pokemon with animation 0 (Arceus, porygon, banette, croagunk, togekiss and lucario) and also a gothorita in a white 2 savegame
-				//anim = random_form_anim();
-				if (world_species[world][speciesbox.SelectedIndex] == 473)
-					anim = 4; //But Mamoswine has, for some reason, animation 04, being the only known exception (would need more legit saves with the events) 
+				//PGL animations come from world_anims like every other area now.
+				//Nearly every PGL distribution uses LOOK_AROUND; Mamoswine is the one
+				//known exception, index 2 (WALK_LOOK_AROUND), stored raw as 4.
+				int anim = form_anim(gender);
 				Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], PGL_attacks[speciesbox.SelectedIndex], gender, 0, anim);
 			}
 			this.Close();
@@ -566,6 +566,377 @@ namespace BW_tool
 		
 		int[] PGL_exclusives = new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2};
 		
+		/*
+		 * Per-species Dream World idle animation, sourced from PDW animation research data.
+		 * Shape mirrors world_species / world_attacks: [world][species index][gender]
+		 * where gender is 0 = male, 1 = female, 2 = genderless.
+		 * Values are animation *indices* (0-7), matching Entralink's animbox1 ordering:
+		 *   0 = LOOK_AROUND
+		 *   1 = WALK_AROUND
+		 *   2 = WALK_LOOK_AROUND
+		 *   3 = WALK_VERTICALLY
+		 *   4 = WALK_HORIZONTALLY
+		 *   5 = WALK_LOOK_HORIZONTALLY
+		 *   6 = SPIN_RIGHT
+		 *   7 = SPIN_LEFT
+		 * The raw value stored in the save is index * 2 (see anim_raw below).
+		 * -1 means that gender does not occur for this species in this area.
+		 */
+		int[][][] world_anims = new int[][][]
+		{
+			//Pleasant Forest
+			new int[][]{
+				new int[]{  4,  5, -1}, // 0 Rattata
+				new int[]{ -1,  7, -1}, // 1 Nidoran
+				new int[]{  6, -1, -1}, // 2 Nidoran
+				new int[]{  0,  0, -1}, // 3 Oddish
+				new int[]{  0,  0, -1}, // 4 Bellsprout
+				new int[]{  6,  7, -1}, // 5 Ponyta
+				new int[]{  2,  3, -1}, // 6 Farfetch'd
+				new int[]{  5,  1, -1}, // 7 Doduo
+				new int[]{  4,  5, -1}, // 8 Exeggcute
+				new int[]{  6,  7, -1}, // 9 Lickitung
+				new int[]{  2,  3, -1}, //10 Tangela
+				new int[]{ -1,  0, -1}, //11 Kangaskhan
+				new int[]{  0,  1, -1}, //12 Sentret
+				new int[]{  6,  7, -1}, //13 Igglybuff
+				new int[]{  1,  2, -1}, //14 Mareep
+				new int[]{  0,  1, -1}, //15 Hoppip
+				new int[]{  2,  3, -1}, //16 Sunkern
+				new int[]{  4,  5, -1}, //17 Stantler
+				new int[]{  3,  4, -1}, //18 Poochyena
+				new int[]{  3,  4, -1}, //19 Lotad
+				new int[]{  5,  6, -1}, //20 Taillow
+				new int[]{  5,  6, -1}, //21 Surskit
+				new int[]{  6,  7, -1}, //22 Bidoof
+				new int[]{  7,  0, -1}, //23 Shinx
+				new int[]{  7,  7, -1}, //24 Tympole
+				new int[]{  6,  6, -1}, //25 Cottonee
+				new int[]{ -1,  6, -1}, //26 Petilil
+				new int[]{  5,  5, -1}, //27 Karrablast
+				new int[]{  0,  0, -1}, //28 Shelmet
+				new int[]{  5,  6, -1}, //29 Glameow
+				new int[]{  3,  3, -1}, //30 Scolipede
+				new int[]{  1,  2, -1}, //31 Psyduck
+				new int[]{  7,  0, -1}, //32 Growlithe
+				new int[]{  1,  2, -1}, //33 Scyther
+				new int[]{  3, -1, -1}, //34 Tauros
+				new int[]{  7,  0, -1}, //35 Marill
+				new int[]{  6,  7, -1}, //36 Sudowoodo
+				new int[]{  0,  1, -1}, //37 Girafarig
+				new int[]{ -1,  2, -1}, //38 Miltank
+				new int[]{  3,  4, -1}, //39 Zigzagoon
+				new int[]{  5,  6, -1}, //40 Electrike
+				new int[]{  7,  0, -1}, //41 Castform
+				new int[]{  1,  2, -1}, //42 Pachirisu
+				new int[]{  3,  4, -1}, //43 Buneary
+				new int[]{  3,  4, -1}, //44 Vulpix
+				new int[]{  5,  6, -1}, //45 Poliwag
+				new int[]{  7,  0, -1}, //46 Natu
+				new int[]{  1,  2, -1}, //47 Elekid
+				new int[]{  3,  4, -1}  //48 Skitty
+			},
+			//Windswept Sky
+			new int[][]{
+				new int[]{  4,  5, -1}, // 0 Butterfree
+				new int[]{  4,  5, -1}, // 1 Pidgey
+				new int[]{  0,  1, -1}, // 2 Spearow
+				new int[]{  2,  3, -1}, // 3 Zubat
+				new int[]{  6,  7, -1}, // 4 Aerodactyl
+				new int[]{  2,  3, -1}, // 5 Hoothoot
+				new int[]{  0,  1, -1}, // 6 Ledyba
+				new int[]{  2,  3, -1}, // 7 Hoppip
+				new int[]{  6,  7, -1}, // 8 Yanma
+				new int[]{  1,  1, -1}, // 9 Murkrow
+				new int[]{  0,  1, -1}, //10 Gligar
+				new int[]{  2,  3, -1}, //11 Delibird
+				new int[]{  4,  5, -1}, //12 Taillow
+				new int[]{  6,  7, -1}, //13 Wingull
+				new int[]{  3,  2, -1}, //14 Swablu  // ! !!
+				new int[]{  4,  5, -1}, //15 Staravia
+				new int[]{  2,  2, -1}, //16 Pidove
+				new int[]{  1,  1, -1}, //17 Sigilyph
+				new int[]{  5,  5, -1}, //18 Ducklett
+				new int[]{  5,  5, -1}, //19 Emolga
+				new int[]{  3,  4, -1}, //20 Skarmory
+				new int[]{  5,  6, -1}, //21 Tropius
+				new int[]{  7,  3, -1}, //22 Drifloon  // ! !!
+				new int[]{  1,  2, -1}  //23 Chatot
+			},
+			//Sparkling Sea
+			new int[][]{
+				new int[]{  1,  2, -1}, // 0 Slowpoke
+				new int[]{  4,  4, -1}, // 1 Seel
+				new int[]{  0,  0, -1}, // 2 Shellder
+				new int[]{  4,  4, -1}, // 3 Krabby
+				new int[]{  0,  1, -1}, // 4 Horsea
+				new int[]{  6,  7, -1}, // 5 Goldeen
+				new int[]{  0,  1, -1}, // 6 Seaking
+				new int[]{ -1, -1,  0}, // 7 Staryu
+				new int[]{  2,  3, -1}, // 8 Magikarp
+				new int[]{  0,  1, -1}, // 9 Omanyte
+				new int[]{  2,  3, -1}, //10 Kabuto
+				new int[]{  6,  6, -1}, //11 Chinchou
+				new int[]{  6,  7, -1}, //12 Wooper
+				new int[]{  6,  7, -1}, //13 Qwilfish
+				new int[]{  4,  5, -1}, //14 Corsola
+				new int[]{  6,  7, -1}, //15 Remoraid
+				new int[]{  2,  3, -1}, //16 Mantine
+				new int[]{  4,  5, -1}, //17 Wailmer
+				new int[]{  2,  3, -1}, //18 Barboach
+				new int[]{  0,  0, -1}, //19 Clamperl
+				new int[]{  4,  5, -1}, //20 Relicanth
+				new int[]{  4,  5, -1}, //21 Luvdisc
+				new int[]{  2,  3, -1}, //22 Buizel
+				new int[]{  4,  5, -1}, //23 Finneon
+				new int[]{  0,  0, -1}, //24 Basculin
+				new int[]{  0,  0, -1}, //25 Basculin
+				new int[]{  7,  7, -1}, //26 Alomomola
+				new int[]{  1,  1, -1}, //27 Stunfisk
+				new int[]{  6,  6, -1}, //28 Tirtouga
+				new int[]{  7,  0, -1}, //29 Tentacool
+				new int[]{  5,  6, -1}, //30 Carvanha
+				new int[]{  6,  1, -1}, //31 Corphish  // ! !!
+				new int[]{  0,  0, -1}, //32 Lileep
+				new int[]{  3,  4, -1}, //33 Anorith
+				new int[]{  2,  3, -1}, //34 Feebas
+				new int[]{  4,  6, -1}, //35 Shellos  // ! !!
+				new int[]{  5,  7, -1}, //36 Shellos  // ! !!
+				new int[]{  1,  2, -1}, //37 Lapras
+				new int[]{  0,  1, -1}  //38 Dratini
+			},
+			//Spooky Manor
+			new int[][]{
+				new int[]{  2,  2, -1}, // 0 Gastly
+				new int[]{  4,  4, -1}, // 1 Drowzee
+				new int[]{  1,  1, -1}, // 2 Mr. Mime
+				new int[]{  5,  5, -1}, // 3 Spinarak
+				new int[]{  3,  3, -1}, // 4 Misdreavus
+				new int[]{  0,  0, -1}, // 5 Wobbuffet
+				new int[]{  2,  1, -1}, // 6 Houndour  // ! !!
+				new int[]{ -1,  5, -1}, // 7 Smoochum
+				new int[]{  2,  2, -1}, // 8 Mawile
+				new int[]{  5,  5, -1}, // 9 Meditite
+				new int[]{  7,  7, -1}, //10 Spoink
+				new int[]{  3,  3, -1}, //11 Shuppet
+				new int[]{  6,  7, -1}, //12 Duskull
+				new int[]{  4,  3, -1}, //13 Chimecho  // ! !!
+				new int[]{  1,  1, -1}, //14 Stunky
+				new int[]{ -1, -1,  0}, //15 Bronzor
+				new int[]{  3,  3, -1}, //16 Elgyem
+				new int[]{  4,  4, -1}, //17 Pawniard
+				new int[]{  1,  1, -1}, //18 Galvantula
+				new int[]{  5,  5, -1}, //19 Meowth
+				new int[]{  1,  1, -1}, //20 Snubbull
+				new int[]{  4,  4, -1}, //21 Smeargle
+				new int[]{  2, -1, -1}, //22 Volbeat
+				new int[]{ -1,  2, -1}, //23 Illumise
+				new int[]{ -1, -1,  0}, //24 Rotom
+				new int[]{  0,  0, -1}, //25 Abra
+				new int[]{  5,  5, -1}, //26 Ralts
+				new int[]{  1,  2, -1}, //27 Sableye
+				new int[]{  0,  0, -1}, //28 Spiritomb
+				new int[]{  4,  4, -1}, //29 Duosion
+				new int[]{ -1, -1,  7}  //30 Golett
+			},
+			//Rugged Mountain
+			new int[][]{
+				new int[]{  5,  5, -1}, // 0 Mankey
+				new int[]{  4,  4, -1}, // 1 Machop
+				new int[]{ -1, -1,  1}, // 2 Magnemite
+				new int[]{  0,  0, -1}, // 3 Koffing
+				new int[]{  3,  3, -1}, // 4 Rhyhorn
+				new int[]{  7,  7, -1}, // 5 Slugma
+				new int[]{  1,  1, -1}, // 6 Phanpy
+				new int[]{  4,  4, -1}, // 7 Larvitar
+				new int[]{  3,  3, -1}, // 8 Torkoal
+				new int[]{  0,  0, -1}, // 9 Trapinch
+				new int[]{  1,  1, -1}, //10 Cacnea
+				new int[]{  0,  0, -1}, //11 Burmy
+				new int[]{  4,  4, -1}, //12 Hippopotas
+				new int[]{  2,  2, -1}, //13 Skorupi
+				new int[]{  4,  4, -1}, //14 Heatmor
+				new int[]{  3,  3, -1}, //15 Durant
+				new int[]{  0,  0, -1}, //16 Maractus
+				new int[]{  6,  6, -1}, //17 Crustle
+				new int[]{  5,  5, -1}, //18 Magby
+				new int[]{  2,  2, -1}, //19 Teddiursa
+				new int[]{  6,  6, -1}, //20 Makuhita
+				new int[]{  7,  7, -1}, //21 Numel
+				new int[]{  5,  5, -1}, //22 Spinda
+				new int[]{  5,  5, -1}, //23 Absol
+				new int[]{ -1, -1,  3}, //24 Beldum
+				new int[]{  1,  1, -1}, //25 Croagunk
+				new int[]{  2, -1, -1}, //26 Tyrogue
+				new int[]{  1,  1, -1}, //27 Bagon
+				new int[]{  5,  5, -1}, //28 Krookodile
+				new int[]{  4,  4, -1}  //29 Riolu
+			},
+			//Icy Cave
+			new int[][]{
+				new int[]{  5,  5, -1}, // 0 Sandshrew
+				new int[]{  0,  0, -1}, // 1 Geodude
+				new int[]{  1,  1, -1}, // 2 Onix
+				new int[]{ -1, -1,  2}, // 3 Voltorb
+				new int[]{  7,  7, -1}, // 4 Cubone
+				new int[]{  5,  5, -1}, // 5 Cleffa
+				new int[]{  0,  0, -1}, // 6 Shuckle
+				new int[]{  3,  3, -1}, // 7 Whismur
+				new int[]{  0,  0, -1}, // 8 Nosepass
+				new int[]{  7,  7, -1}, // 9 Aron
+				new int[]{ -1, -1,  1}, //10 Lunatone
+				new int[]{ -1, -1,  1}, //11 Solrock
+				new int[]{ -1, -1,  6}, //12 Baltoy
+				new int[]{  4,  4, -1}, //13 Spheal
+				new int[]{  1,  1, -1}, //14 Cranidos
+				new int[]{  7,  7, -1}, //15 Snover
+				new int[]{  1,  1, -1}, //16 Drilbur
+				new int[]{  4,  4, -1}, //17 Druddigon
+				new int[]{  2,  2, -1}, //18 Diglett
+				new int[]{  6,  6, -1}, //19 Dunsparce
+				new int[]{  6,  7, -1}, //20 Boldore
+				new int[]{  0,  0, -1}, //21 Vanillish
+				new int[]{ -1, -1,  6}, //22 Klang
+				new int[]{  4,  4, -1}, //23 Sneasel
+				new int[]{  5,  5, -1}, //24 Snorunt
+				new int[]{  0,  0, -1}, //25 Shieldon
+				new int[]{  7,  7, -1}, //26 Swinub
+				new int[]{  2,  2, -1}, //27 Gible
+				new int[]{  5,  5, -1}  //28 Axew
+			},
+			//Dream Park
+			new int[][]{
+				new int[]{  6,  6, -1}, // 0 Paras
+				new int[]{  7,  7, -1}, // 1 Pineco
+				new int[]{  0,  0, -1}, // 2 Wurmple
+				new int[]{  4,  4, -1}, // 3 Seedot
+				new int[]{  0,  0, -1}, // 4 Slakoth
+				new int[]{  6,  6, -1}, // 5 Nincada
+				new int[]{  2,  2, -1}, // 6 Plusle
+				new int[]{  2,  2, -1}, // 7 Minun
+				new int[]{  6,  6, -1}, // 8 Gulpin
+				new int[]{  5,  5, -1}, // 9 Kecleon
+				new int[]{  5,  5, -1}, //10 Kricketot
+				new int[]{  7,  7, -1}, //11 Cherubi
+				new int[]{  0,  0, -1}, //12 Carnivine
+				new int[]{  4,  4, -1}, //13 Audino
+				new int[]{  0, -1, -1}, //14 Throh
+				new int[]{  1, -1, -1}, //15 Sawk
+				new int[]{  5,  5, -1}, //16 Scraggy
+				new int[]{  6,  6, -1}, //17 Venonat
+				new int[]{  7,  7, -1}, //18 Grimer
+				new int[]{  2,  2, -1}, //19 Combee
+				new int[]{  2,  2, -1}, //20 Beedrill
+				new int[]{  3,  3, -1}, //21 Ekans
+				new int[]{  3,  3, -1}, //22 Togepi
+				new int[]{  2,  2, -1}, //23 Aipom
+				new int[]{  6,  6, -1}, //24 Shroomish
+				new int[]{  3,  3, -1}, //25 Gurdurr
+				new int[]{  4,  4, -1}, //26 Roselia
+				new int[]{  1,  1, -1}, //27 Zangoose
+				new int[]{  5,  5, -1}, //28 Seviper
+				new int[]{ -1,  4, -1}, //29 Chansey
+				new int[]{  4,  4, -1}, //30 Pinsir
+				new int[]{  1,  1, -1}, //31 Eevee
+				new int[]{  0,  0, -1}, //32 Snorlax
+				new int[]{  3,  3, -1}  //33 Heracross
+			},
+			//Pokemon Cafe forest (area 50)
+			new int[][]{
+				new int[]{  5,  5, -1}, // 0 Poliwhirl
+				new int[]{  1,  1, -1}, // 1 Eevee
+				new int[]{  4,  4, -1}, // 2 Smeargle
+				new int[]{  0,  0, -1}  // 3 Burmy
+			},
+			//PGL promotions
+			new int[][]{
+				new int[]{  0, -1, -1}, // 0 Vaporeon
+				new int[]{  0, -1, -1}, // 1 Jolteon
+				new int[]{  0, -1, -1}, // 2 Flareon
+				new int[]{  0, -1, -1}, // 3 Espeon
+				new int[]{  0, -1, -1}, // 4 Umbreon
+				new int[]{  0, -1, -1}, // 5 Leafeon
+				new int[]{  0, -1, -1}, // 6 Glaceon
+				new int[]{  0, -1, -1}, // 7 Bulbasaur
+				new int[]{  0, -1, -1}, // 8 Charmander
+				new int[]{  0, -1, -1}, // 9 Squirtle
+				new int[]{  0, -1, -1}, //10 Croagunk
+				new int[]{  0, -1, -1}, //11 Turtwig
+				new int[]{  0, -1, -1}, //12 Chimchar
+				new int[]{  0, -1, -1}, //13 Piplup
+				new int[]{ -1, -1,  0}, //14 Arceus
+				new int[]{  0, -1, -1}, //15 Treecko
+				new int[]{  0, -1, -1}, //16 Torchic
+				new int[]{  0, -1, -1}, //17 Mudkip
+				new int[]{  0, -1, -1}, //18 Togekiss
+				new int[]{  2, -1, -1}, //19 Mamoswine
+				new int[]{ -1, -1,  0}, //20 Porygon
+				new int[]{ -1, -1,  0}, //21 Rayquaza
+				new int[]{ -1,  0, -1}, //22 Banette
+				new int[]{  0, -1, -1}, //23 Croagunk
+				new int[]{  0, -1, -1}, //24 Altaria
+				new int[]{ -1,  0, -1}, //25 Blissey
+				new int[]{  0, -1, -1}, //26 Lucario
+				new int[]{  0, -1, -1}, //27 Gothorita
+				new int[]{  0, -1, -1}, //28 Pikachu
+				new int[]{  0, -1, -1}, //29 Jumpluff
+				new int[]{  0, -1, -1}, //30 Pansage
+				new int[]{  0, -1, -1}, //31 Pansear
+				new int[]{  0, -1, -1}, //32 Panpour
+				new int[]{  0, -1, -1}, //33 Turtwig
+				new int[]{  0, -1, -1}, //34 Chimchar
+				new int[]{  0, -1, -1}, //35 Piplup
+				new int[]{  0, -1, -1}, //36 Gothorita
+				new int[]{  0, -1, -1}, //37 Scizor
+				new int[]{  0, -1, -1}, //38 Garchomp
+				new int[]{  0, -1, -1}, //39 Dragonite
+				new int[]{  0, -1, -1}, //40 Tyranitar
+				new int[]{  0, -1, -1}, //41 Dragonite
+				new int[]{ -1, -1,  0}, //42 Metagross
+				new int[]{ -1, -1,  0}  //43 (unreachable - extra world_species entry)
+			}
+		};
+
+		/// <summary>
+		/// Returns the raw animation value to store for the currently selected
+		/// species and gender, taken from world_anims. Falls back to the other
+		/// gender's documented animation, and finally to a random one, when the
+		/// combination has no research data. All nine worlds are now covered,
+		/// so the random fallback should not normally be reached.
+		/// </summary>
+		private int form_anim(int gnd)
+		{
+			int sel = speciesbox.SelectedIndex;
+			if (world < 0 || world >= world_anims.Length)
+				return random_form_anim();
+			if (sel < 0 || sel >= world_anims[world].Length)
+				return random_form_anim();
+			
+			int[] entry = world_anims[world][sel];
+			int index = -1;
+			
+			if (gnd >= 0 && gnd < entry.Length)
+				index = entry[gnd];
+			
+			//Gender not documented for this species/area - use whatever it does have
+			if (index < 0)
+			{
+				for (int i = 0; i < entry.Length; i++)
+				{
+					if (entry[i] >= 0)
+					{
+						index = entry[i];
+						break;
+					}
+				}
+			}
+			
+			if (index < 0)
+				return random_form_anim(); //no data at all for this area
+			
+			return index * 2; //save stores the animation index doubled
+		}
+
 		public static int random_form_anim()
 		{
 			Random rnd = new Random(Guid.NewGuid().GetHashCode());
