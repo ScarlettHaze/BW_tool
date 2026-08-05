@@ -714,7 +714,7 @@ namespace BW_tool
 		*/
 		int[][] world_BW1_exclusives = new int[][]
 		{
-			new int[]{029, 032, 174, 187, 270, 276, 283, 309, 351, 417},//Pleasant Forest
+			new int[]{029, 032, 174, 187, 270, 276, 309, 351, 417},//Pleasant Forest
 			new int[]{012, 163, 278, 333, 425, 441},//Windswept Sky
 			new int[]{079, 098, 119, 120, 222, 422, 422},
 			new int[]{202, 238, 303, 307, 436, 052, 479, 280, 302, 442},
@@ -729,7 +729,7 @@ namespace BW_tool
 			new int[]{535, 546, 548, 588, 616, 545},//Pleasant Forest
 			new int[]{519, 561, 580, 587},//Windswept Sky
 			new int[]{550, 550, 594, 618, 564},
-			new int[]{605, 624, 596, 578},
+			new int[]{605, 624, 596, 578, 622},
 			new int[]{631, 632, 556, 558, 553},
 			new int[]{529, 621, 525, 583, 600, 610},
 			new int[]{531, 538, 539, 559, 533},
