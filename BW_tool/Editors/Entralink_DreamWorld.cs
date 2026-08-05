@@ -411,7 +411,8 @@ namespace BW_tool
 			{
 				//Handle forms
 				int anim = form_anim(gender);
-				if (world == 2 && (speciesbox.SelectedIndex == 25 || speciesbox.SelectedIndex == 36 )) //Blue basculin, East Sea shellos
+				if ((world == 2 && (speciesbox.SelectedIndex == 25 || speciesbox.SelectedIndex == 36 )) //Blue basculin, East Sea shellos
+					|| (world == 4 && speciesbox.SelectedIndex == 11)) //Rugged Mountain Burmy (Sandy Cloak)
 					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 1, anim);
 				else
 					Entralink.dream_pkm = Entralink.forest.create_pkm(world_species[world][speciesbox.SelectedIndex], world_attacks[world][speciesbox.SelectedIndex][atk], gender, 0, anim);
