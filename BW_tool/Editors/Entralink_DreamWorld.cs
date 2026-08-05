@@ -527,6 +527,8 @@ namespace BW_tool
 					int frm = 0;
 					if (world == 2 && (i == 25 || i == 36)) //Blue Basculin, East Sea Shellos
 						frm = 1;
+					if (world == 4 && i == 11) //Rugged Mountain Burmy (Sandy Cloak)
+						frm = 1;
 					
 					toAdd.Add(Entralink.forest.create_pkm(dex, mv, gnd, frm, anim));
 				}
