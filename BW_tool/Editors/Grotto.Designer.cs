@@ -18,13 +18,9 @@ namespace BW_tool
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.ComboBox normalgrottobox;
-		private System.Windows.Forms.ComboBox fungrottobox;
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.ComboBox normalgrottogroupbox;
-		private System.Windows.Forms.ComboBox fungrottogroupbox;
-		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.CheckBox normalgrottoavailable;
-		private System.Windows.Forms.CheckBox fungrottoavailable;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.GroupBox groupBox2;
 		private System.Windows.Forms.Button save_button;
@@ -34,8 +30,8 @@ namespace BW_tool
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.ComboBox lastgrottobox;
 		private System.Windows.Forms.Button lastvisitedhelp;
-		private System.Windows.Forms.Button fungrottohelp;
-		private System.Windows.Forms.NumericUpDown unknowngrottobox;
+		private System.Windows.Forms.Button femalehelp;
+		private System.Windows.Forms.NumericUpDown femalebox;
 		private System.Windows.Forms.GroupBox groupBox5;
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.Label label6;
@@ -77,16 +73,12 @@ namespace BW_tool
 			this.label2 = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
 			this.normalgrottobox = new System.Windows.Forms.ComboBox();
-			this.fungrottobox = new System.Windows.Forms.ComboBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.normalgrottogroupbox = new System.Windows.Forms.ComboBox();
-			this.fungrottogroupbox = new System.Windows.Forms.ComboBox();
-			this.label5 = new System.Windows.Forms.Label();
 			this.normalgrottoavailable = new System.Windows.Forms.CheckBox();
-			this.fungrottoavailable = new System.Windows.Forms.CheckBox();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
-			this.fungrottohelp = new System.Windows.Forms.Button();
+			this.femalehelp = new System.Windows.Forms.Button();
 			this.note_but = new System.Windows.Forms.Button();
 			this.save_button = new System.Windows.Forms.Button();
 			this.swarmbox = new System.Windows.Forms.ComboBox();
@@ -107,14 +99,14 @@ namespace BW_tool
 			this.lastvisitedhelp = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.lastgrottobox = new System.Windows.Forms.ComboBox();
-			this.unknowngrottobox = new System.Windows.Forms.NumericUpDown();
+			this.femalebox = new System.Windows.Forms.NumericUpDown();
 			this.groupBox4 = new System.Windows.Forms.GroupBox();
 			this.exit_but = new System.Windows.Forms.Button();
 			this.groupBox1.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			this.groupBox5.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.unknowngrottobox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.femalebox)).BeginInit();
 			this.groupBox4.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -158,11 +150,11 @@ namespace BW_tool
 			// 
 			// label3
 			// 
-			this.label3.Location = new System.Drawing.Point(68, 17);
+			this.label3.Location = new System.Drawing.Point(14, 36);
 			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(100, 23);
+			this.label3.Size = new System.Drawing.Size(112, 23);
 			this.label3.TabIndex = 9;
-			this.label3.Text = "Slot";
+			this.label3.Text = "Female roll (0-99)";
 			// 
 			// normalgrottobox
 			// 
@@ -189,32 +181,6 @@ namespace BW_tool
 			this.normalgrottobox.Size = new System.Drawing.Size(121, 21);
 			this.normalgrottobox.TabIndex = 10;
 			// 
-			// fungrottobox
-			// 
-			this.fungrottobox.FormattingEnabled = true;
-			this.fungrottobox.Items.AddRange(new object[] {
-			"Pokemon 1",
-			"Pokemon 2",
-			"Pokemon 3 - GROUP A FEMALE 5% ^^^^",
-			"Item 1",
-			"Item 2 - GROUP A FEMALE 10% ^^^^",
-			"Item 3",
-			"Item 4",
-			"Dowsing 1",
-			"Dowsing 2",
-			"Dowsing 3",
-			"Dowsing 4",
-			"Unknown/Not used/Buggy 1",
-			"Unknown/Not used/Buggy 2",
-			"Unknown - GROUP B FEMALE 60% ^^^^",
-			"Unknown - GROUP A FEMALE 30% ^^^^",
-			"Unknown/Not used/Buggy 5"});
-			this.fungrottobox.Location = new System.Drawing.Point(68, 33);
-			this.fungrottobox.Name = "fungrottobox";
-			this.fungrottobox.Size = new System.Drawing.Size(204, 21);
-			this.fungrottobox.TabIndex = 11;
-			this.fungrottobox.SelectedIndexChanged += new System.EventHandler(this.FungrottoboxSelectedIndexChanged);
-			// 
 			// label4
 			// 
 			this.label4.Location = new System.Drawing.Point(14, 18);
@@ -236,28 +202,6 @@ namespace BW_tool
 			this.normalgrottogroupbox.Size = new System.Drawing.Size(48, 21);
 			this.normalgrottogroupbox.TabIndex = 13;
 			// 
-			// fungrottogroupbox
-			// 
-			this.fungrottogroupbox.FormattingEnabled = true;
-			this.fungrottogroupbox.Items.AddRange(new object[] {
-			"A",
-			"B",
-			"C",
-			"D"});
-			this.fungrottogroupbox.Location = new System.Drawing.Point(14, 33);
-			this.fungrottogroupbox.Name = "fungrottogroupbox";
-			this.fungrottogroupbox.Size = new System.Drawing.Size(48, 21);
-			this.fungrottogroupbox.TabIndex = 15;
-			this.fungrottogroupbox.SelectedIndexChanged += new System.EventHandler(this.FungrottogroupboxSelectedIndexChanged);
-			// 
-			// label5
-			// 
-			this.label5.Location = new System.Drawing.Point(14, 17);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(48, 23);
-			this.label5.TabIndex = 14;
-			this.label5.Text = "Group";
-			// 
 			// normalgrottoavailable
 			// 
 			this.normalgrottoavailable.Location = new System.Drawing.Point(68, 61);
@@ -266,16 +210,6 @@ namespace BW_tool
 			this.normalgrottoavailable.TabIndex = 16;
 			this.normalgrottoavailable.Text = "Available";
 			this.normalgrottoavailable.UseVisualStyleBackColor = true;
-			// 
-			// fungrottoavailable
-			// 
-			this.fungrottoavailable.Location = new System.Drawing.Point(68, 60);
-			this.fungrottoavailable.Name = "fungrottoavailable";
-			this.fungrottoavailable.Size = new System.Drawing.Size(104, 24);
-			this.fungrottoavailable.TabIndex = 17;
-			this.fungrottoavailable.Text = "Available";
-			this.fungrottoavailable.UseVisualStyleBackColor = true;
-			this.fungrottoavailable.CheckedChanged += new System.EventHandler(this.FungrottoavailableCheckedChanged);
 			// 
 			// groupBox1
 			// 
@@ -293,28 +227,25 @@ namespace BW_tool
 			// 
 			// groupBox2
 			// 
-			this.groupBox2.Controls.Add(this.fungrottohelp);
-			this.groupBox2.Controls.Add(this.fungrottoavailable);
-			this.groupBox2.Controls.Add(this.fungrottogroupbox);
-			this.groupBox2.Controls.Add(this.label5);
-			this.groupBox2.Controls.Add(this.fungrottobox);
+			this.groupBox2.Controls.Add(this.femalehelp);
+			this.groupBox2.Controls.Add(this.femalebox);
 			this.groupBox2.Controls.Add(this.label3);
 			this.groupBox2.Location = new System.Drawing.Point(224, 67);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(278, 97);
 			this.groupBox2.TabIndex = 19;
 			this.groupBox2.TabStop = false;
-			this.groupBox2.Text = "Funfest Grotto ?";
+			this.groupBox2.Text = "Gender Roll (female_num)";
 			// 
-			// fungrottohelp
+			// femalehelp
 			// 
-			this.fungrottohelp.Location = new System.Drawing.Point(256, 0);
-			this.fungrottohelp.Name = "fungrottohelp";
-			this.fungrottohelp.Size = new System.Drawing.Size(22, 23);
-			this.fungrottohelp.TabIndex = 23;
-			this.fungrottohelp.Text = "?";
-			this.fungrottohelp.UseVisualStyleBackColor = true;
-			this.fungrottohelp.Click += new System.EventHandler(this.FungrottohelpClick);
+			this.femalehelp.Location = new System.Drawing.Point(256, 0);
+			this.femalehelp.Name = "femalehelp";
+			this.femalehelp.Size = new System.Drawing.Size(22, 23);
+			this.femalehelp.TabIndex = 23;
+			this.femalehelp.Text = "?";
+			this.femalehelp.UseVisualStyleBackColor = true;
+			this.femalehelp.Click += new System.EventHandler(this.FemalehelpClick);
 			// 
 			// note_but
 			// 
@@ -554,18 +485,18 @@ namespace BW_tool
 			this.lastgrottobox.Size = new System.Drawing.Size(197, 21);
 			this.lastgrottobox.TabIndex = 20;
 			// 
-			// unknowngrottobox
+			// femalebox
 			// 
-			this.unknowngrottobox.Location = new System.Drawing.Point(538, 89);
-			this.unknowngrottobox.Maximum = new decimal(new int[]{
-			255,
+			this.femalebox.Location = new System.Drawing.Point(132, 34);
+			this.femalebox.Maximum = new decimal(new int[]{
+			127,
 			0,
 			0,
 			0});
-			this.unknowngrottobox.Name = "unknowngrottobox";
-			this.unknowngrottobox.Size = new System.Drawing.Size(52, 20);
-			this.unknowngrottobox.TabIndex = 23;
-			this.unknowngrottobox.Visible = false;
+			this.femalebox.Name = "femalebox";
+			this.femalebox.Size = new System.Drawing.Size(60, 20);
+			this.femalebox.TabIndex = 11;
+			this.femalebox.ValueChanged += new System.EventHandler(this.FemaleboxValueChanged);
 			// 
 			// groupBox4
 			// 
@@ -596,7 +527,6 @@ namespace BW_tool
 			this.Controls.Add(this.groupBox4);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.save_button);
-			this.Controls.Add(this.unknowngrottobox);
 			this.Name = "Grotto";
 			this.Text = "BW2 Grotto & Swarm tool 0.1 by suloku";
 			this.groupBox1.ResumeLayout(false);
@@ -604,7 +534,7 @@ namespace BW_tool
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox5.ResumeLayout(false);
 			this.groupBox5.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.unknowngrottobox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.femalebox)).EndInit();
 			this.groupBox4.ResumeLayout(false);
 			this.ResumeLayout(false);
 

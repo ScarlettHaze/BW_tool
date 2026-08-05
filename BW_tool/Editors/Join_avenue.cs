@@ -48,20 +48,95 @@ namespace BW_tool
 			//
 		}
 		
+		//Sets a ComboBox index without throwing when the saved value is outside
+		//the list (bad/foreign data, or a country we have no subregion table for)
+		static void selectSafe(ComboBox box, int index)
+		{
+			if (box.Items.Count == 0)
+			{
+				box.SelectedIndex = -1;
+				return;
+			}
+			if (index < 0 || index >= box.Items.Count) index = 0;
+			box.SelectedIndex = index;
+		}
+		static int index_or_zero(ComboBox box)
+		{
+			return box.SelectedIndex < 0 ? 0 : box.SelectedIndex;
+		}
+		//Saved values can be outside a NumericUpDown's configured range
+		static decimal clampValue(NumericUpDown box, int value)
+		{
+			if (value < box.Minimum) return box.Minimum;
+			if (value > box.Maximum) return box.Maximum;
+			return value;
+		}
+		static DateTime clampDate(DateTimePicker picker, DateTime date)
+		{
+			if (date < picker.MinDate) return picker.MinDate;
+			if (date > picker.MaxDate) return picker.MaxDate;
+			return date;
+		}
+		//Only these countries have a subregion (area) table
+		ComboBox subregion_source(int country)
+		{
+			switch (country)
+			{
+				case 9:   return helper_subregion_argentina;
+				case 12:  return helper_subregion_australia;
+				case 28:  return helper_subregion_brazil;
+				case 36:  return helper_subregion_canada;
+				case 43:  return helper_subregion_china;
+				case 72:  return helper_subregion_finland;
+				case 73:  return helper_subregion_france;
+				case 79:  return helper_subregion_germany;
+				case 95:  return helper_subregion_india;
+				case 102: return helper_subregion_italy;
+				case 105: return helper_subregion_japan;
+				case 155: return helper_subregion_norway;
+				case 166: return helper_subregion_poland;
+				case 174: return helper_subregion_russia;
+				case 195: return helper_subregion_spain;
+				case 200: return helper_subregion_sweeden;
+				case 218: return helper_subregion_england;
+				case 220: return helper_subregion_USA;
+				default:  return null;
+			}
+		}
+		//Repopulate a subregion list for the given country. Clear first, then fill,
+		//then select - the other way round throws on an empty list and leaves the
+		//box with no selection.
+		void fill_subregion(ComboBox target, int country)
+		{
+			target.Items.Clear();
+			ComboBox source = subregion_source(country);
+			if (source == null)
+			{
+				target.Items.Add("0 None");
+			}
+			else
+			{
+				object[] a = new object[source.Items.Count];
+				source.Items.CopyTo(a, 0);
+				target.Items.AddRange(a);
+			}
+			target.SelectedIndex = 0;
+		}
+
 		void load_npc()
 		{
 			npc_name.Text = ja.npc[(int)npc.Value].name;
-			npc_gender.SelectedIndex = ja.npc[(int)npc.Value].gender;
+			selectSafe(npc_gender, ja.npc[(int)npc.Value].gender);
 			npc_text1.Text = ja.npc[(int)npc.Value].text1;
-			npc_text1.Text = ja.npc[(int)npc.Value].text2;
+			npc_text2.Text = ja.npc[(int)npc.Value].text2;
 			npc_spoken.Checked = ja.npc[(int)npc.Value].spoken;
 		}
 		void set_npc()
 		{
 			ja.npc[(int)npc.Value].name = npc_name.Text;
-			ja.npc[(int)npc.Value].gender = npc_gender.SelectedIndex;
+			ja.npc[(int)npc.Value].gender = index_or_zero(npc_gender);
 			ja.npc[(int)npc.Value].text1 = npc_text1.Text;
-			ja.npc[(int)npc.Value].text2 = npc_text1.Text;
+			ja.npc[(int)npc.Value].text2 = npc_text2.Text;
 			ja.npc[(int)npc.Value].spoken = npc_spoken.Checked;
 		}
 		void Npc_applyClick(object sender, EventArgs e)
@@ -75,27 +150,29 @@ namespace BW_tool
 		
 		void load_data()
 		{
-			rank.Value = ja.rank;
-			color.SelectedIndex = ja.color;
+			rank.Value = clampValue(rank, ja.rank);
+			selectSafe(color, ja.color);
 			favorite.Text = ja.fav_phrase;
 			Impressed.Text = ja.imp_phrase;
 			title.Text = ja.title;
 			name.Text = ja.name;
 			
+			//Select first, then load - the loaders read these indices
+			shop.Value = 0;
+			visitor.Value = 0;
+			npc.Value = 0;
+			helper_value = 0;
+			helper.SelectedIndex = 0;
+			
 			load_shop();
 			load_visitor();
 			load_npc();
 			load_helper();
-			
-			shop.Value = 0;
-			visitor.Value = 0;
-			npc.Value = 0;
-			helper.SelectedIndex = 0;
 		}
 		void set_data()
 		{
 			ja.rank = (int)rank.Value;
-			ja.color = color.SelectedIndex;
+			ja.color = index_or_zero(color);
 			ja.fav_phrase = favorite.Text;
 			ja.imp_phrase = Impressed.Text;
 			ja.title = title.Text;
@@ -115,106 +192,7 @@ namespace BW_tool
 		}
 		void Helper_countrySelectedIndexChanged(object sender, EventArgs e)
 		{
-			
-			helper_subregion.SelectedIndex = 0;
-			helper_subregion.Items.Clear();
-			object[] a;
-			switch (helper_country.SelectedIndex)
-			{
-				case 9:
-					a= new object[helper_subregion_argentina.Items.Count];
-					helper_subregion_argentina.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 12:
-					a = new object[helper_subregion_australia.Items.Count];
-					helper_subregion_australia.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 28:
-					a = new object[helper_subregion_brazil.Items.Count];
-					helper_subregion_brazil.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 36:
-					a = new object[helper_subregion_canada.Items.Count];
-					helper_subregion_canada.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 43:
-					a = new object[helper_subregion_china.Items.Count];
-					helper_subregion_china.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 72:
-					a = new object[helper_subregion_finland.Items.Count];
-					helper_subregion_finland.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 73:
-					a = new object[helper_subregion_france.Items.Count];
-					helper_subregion_france.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 79:
-					a = new object[helper_subregion_germany.Items.Count];
-					helper_subregion_germany.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 95:
-					a = new object[helper_subregion_india.Items.Count];
-					helper_subregion_india.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 102:
-					a = new object[helper_subregion_italy.Items.Count];
-					helper_subregion_italy.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 105:
-					a = new object[helper_subregion_japan.Items.Count];
-					helper_subregion_japan.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 155:
-					a = new object[helper_subregion_norway.Items.Count];
-					helper_subregion_norway.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 166:
-					a = new object[helper_subregion_poland.Items.Count];
-					helper_subregion_poland.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 174:
-					a = new object[helper_subregion_russia.Items.Count];
-					helper_subregion_russia.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 195:
-					a = new object[helper_subregion_spain.Items.Count];
-					helper_subregion_spain.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 200:
-					a = new object[helper_subregion_sweeden.Items.Count];
-					helper_subregion_sweeden.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 218:
-					a = new object[helper_subregion_england.Items.Count];
-					helper_subregion_england.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				case 220:
-					a = new object[helper_subregion_USA.Items.Count];
-					helper_subregion_USA.Items.CopyTo(a,0);
-					helper_subregion.Items.AddRange(a);
-					break;
-				default:
-					helper_subregion.Items.Add("0 None");
-					break;
-			}
+			fill_subregion(helper_subregion, helper_country.SelectedIndex);
 		}
 		void load_helper()
 		{
@@ -224,9 +202,13 @@ namespace BW_tool
 			helper_greet1.Text = ja.helper[helper_value].text1;
 			helper_greet2.Text = ja.helper[helper_value].text2;
 			helper_sprite.Value = ja.helper[helper_value].sprite;
-			helper_country.SelectedIndex = ja.helper[helper_value].country;
-			helper_subregion.SelectedIndex = ja.helper[helper_value].subregion;
-			helper_date.Value = ja.helper[helper_value].met;
+			selectSafe(helper_country, ja.helper[helper_value].country);
+			//The country change may not have fired an event, so refill explicitly.
+			//Most countries have no subregion table at all, so the stored area byte
+			//is very often out of range for the list - selectSafe absorbs that.
+			fill_subregion(helper_subregion, ja.helper[helper_value].country);
+			selectSafe(helper_subregion, ja.helper[helper_value].subregion);
+			helper_date.Value = clampDate(helper_date, ja.helper[helper_value].met);
 		}
 		void set_helper()
 		{
@@ -235,8 +217,8 @@ namespace BW_tool
 			ja.helper[helper_value].text1 = helper_greet1.Text;
 			ja.helper[helper_value].text2 = helper_greet2.Text;
 			ja.helper[helper_value].sprite = (int)helper_sprite.Value;
-			ja.helper[helper_value].country = helper_country.SelectedIndex;
-			ja.helper[helper_value].subregion = helper_subregion.SelectedIndex;
+			ja.helper[helper_value].country = index_or_zero(helper_country);
+			ja.helper[helper_value].subregion = index_or_zero(helper_subregion);
 			ja.helper[helper_value].met = helper_date.Value;
 		}
 		void Helper_applyClick(object sender, EventArgs e)
@@ -247,6 +229,8 @@ namespace BW_tool
 		int helper_value = 0;
 		void HelperSelectedIndexChanged(object sender, EventArgs e)
 		{
+			//Apply commits edits here, same as the shop/visitor/npc tabs
+			if (helper.SelectedIndex < 0) return;
 			helper_value = helper.SelectedIndex;
 			load_helper();
 		}
@@ -258,105 +242,7 @@ namespace BW_tool
 		}
 		void shop_handleCountry()
 		{
-			shop_subregion.SelectedIndex = 0;
-			shop_subregion.Items.Clear();
-			object[] a;
-			switch (shop_country.SelectedIndex)
-			{
-				case 9:
-					a= new object[helper_subregion_argentina.Items.Count];
-					helper_subregion_argentina.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 12:
-					a = new object[helper_subregion_australia.Items.Count];
-					helper_subregion_australia.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 28:
-					a = new object[helper_subregion_brazil.Items.Count];
-					helper_subregion_brazil.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 36:
-					a = new object[helper_subregion_canada.Items.Count];
-					helper_subregion_canada.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 43:
-					a = new object[helper_subregion_china.Items.Count];
-					helper_subregion_china.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 72:
-					a = new object[helper_subregion_finland.Items.Count];
-					helper_subregion_finland.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 73:
-					a = new object[helper_subregion_france.Items.Count];
-					helper_subregion_france.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 79:
-					a = new object[helper_subregion_germany.Items.Count];
-					helper_subregion_germany.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 95:
-					a = new object[helper_subregion_india.Items.Count];
-					helper_subregion_india.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 102:
-					a = new object[helper_subregion_italy.Items.Count];
-					helper_subregion_italy.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 105:
-					a = new object[helper_subregion_japan.Items.Count];
-					helper_subregion_japan.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 155:
-					a = new object[helper_subregion_norway.Items.Count];
-					helper_subregion_norway.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 166:
-					a = new object[helper_subregion_poland.Items.Count];
-					helper_subregion_poland.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 174:
-					a = new object[helper_subregion_russia.Items.Count];
-					helper_subregion_russia.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 195:
-					a = new object[helper_subregion_spain.Items.Count];
-					helper_subregion_spain.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 200:
-					a = new object[helper_subregion_sweeden.Items.Count];
-					helper_subregion_sweeden.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 218:
-					a = new object[helper_subregion_england.Items.Count];
-					helper_subregion_england.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				case 220:
-					a = new object[helper_subregion_USA.Items.Count];
-					helper_subregion_USA.Items.CopyTo(a,0);
-					shop_subregion.Items.AddRange(a);
-					break;
-				default:
-					shop_subregion.Items.Add("0 None");
-					break;
-			}
+			fill_subregion(shop_subregion, shop_country.SelectedIndex);
 		}
 		void load_shop()
 		{
@@ -365,28 +251,22 @@ namespace BW_tool
 			shop_shout.Text = ja.shop[(int)shop.Value].shout;
 			shop_greeting.Text = ja.shop[(int)shop.Value].greeting;
 			shop_farewell.Text = ja.shop[(int)shop.Value].farewell;
-			shop_gender.SelectedIndex = ja.shop[(int)shop.Value].gender;
+			selectSafe(shop_gender, ja.shop[(int)shop.Value].gender);
 			
-			shop_country.SelectedIndex = ja.shop[(int)shop.Value].country;
-			shop_handleCountry();
-			int i = 0;
-			for (i=0; i<country_subbed.Length; i++)
-			{
-				if (ja.shop[(int)shop.Value].country == country_subbed[i])
-					shop_subregion.SelectedIndex = ja.shop[(int)shop.Value].subregion;	
-			}
-			shop_subregion.SelectedIndex = ja.shop[(int)shop.Value].subregion;
+			selectSafe(shop_country, ja.shop[(int)shop.Value].country);
+			fill_subregion(shop_subregion, ja.shop[(int)shop.Value].country);
+			selectSafe(shop_subregion, ja.shop[(int)shop.Value].subregion);
 			shop_sprite.Value = ja.shop[(int)shop.Value].sprite;
 			
 			load_shop_sprite();
 			
-			shop_date.Value = ja.shop[(int)shop.Value].met;
-			shop_recruit.Value = ja.shop[(int)shop.Value].recruitlvl;
+			shop_date.Value = clampDate(shop_date, ja.shop[(int)shop.Value].met);
+			shop_recruit.Value = clampValue(shop_recruit, ja.shop[(int)shop.Value].citylvl);
 			
-			shop_type.SelectedIndex = ja.shop[(int)shop.Value].shop_version;
-			shop_rank.SelectedIndex = ja.shop[(int)shop.Value].shop_level;
-			shop_store.SelectedIndex = ja.shop[(int)shop.Value].shop_type;
-			shop_exp.Value = ja.shop[(int)shop.Value].shop_exp;
+			selectSafe(shop_type,  ja.shop[(int)shop.Value].shop_version);
+			selectSafe(shop_rank,  ja.shop[(int)shop.Value].shop_level);
+			selectSafe(shop_store, ja.shop[(int)shop.Value].shop_type);
+			shop_exp.Value = clampValue(shop_exp, ja.shop[(int)shop.Value].shop_exp);
 			shop_ishuman.Checked = ja.shop[(int)shop.Value].isplayer;
 			shop_inventory.Checked = ja.shop[(int)shop.Value].inventory;
 			
@@ -399,18 +279,18 @@ namespace BW_tool
 			ja.shop[(int)shop.Value].shout = shop_shout.Text;
 			ja.shop[(int)shop.Value].greeting = shop_greeting.Text;
 			ja.shop[(int)shop.Value].farewell = shop_farewell.Text;
-			ja.shop[(int)shop.Value].gender = shop_gender.SelectedIndex;
+			ja.shop[(int)shop.Value].gender = index_or_zero(shop_gender);
 			
 
-			ja.shop[(int)shop.Value].country = shop_country.SelectedIndex;
-			ja.shop[(int)shop.Value].subregion = shop_subregion.SelectedIndex;
+			ja.shop[(int)shop.Value].country = index_or_zero(shop_country);
+			ja.shop[(int)shop.Value].subregion = index_or_zero(shop_subregion);
 			ja.shop[(int)shop.Value].sprite = (int)shop_sprite.Value;
 			ja.shop[(int)shop.Value].met = shop_date.Value;
-			ja.shop[(int)shop.Value].recruitlvl = (int)shop_recruit.Value;
+			ja.shop[(int)shop.Value].citylvl = (int)shop_recruit.Value;
 
-			ja.shop[(int)shop.Value].shop_version = shop_type.SelectedIndex;
-			ja.shop[(int)shop.Value].shop_level = shop_rank.SelectedIndex;
-			ja.shop[(int)shop.Value].shop_type = shop_store.SelectedIndex;
+			ja.shop[(int)shop.Value].shop_version = index_or_zero(shop_type);
+			ja.shop[(int)shop.Value].shop_level = index_or_zero(shop_rank);
+			ja.shop[(int)shop.Value].shop_type = index_or_zero(shop_store);
 			ja.shop[(int)shop.Value].shop_exp = (int)shop_exp.Value;
 			ja.shop[(int)shop.Value].isplayer = shop_ishuman.Checked;
 			ja.shop[(int)shop.Value].inventory = shop_inventory.Checked;
@@ -478,112 +358,8 @@ namespace BW_tool
 		}
 		void visitor_handleCountry()
 		{
-			
-			visitor_subregion.SelectedIndex = 0;
-			visitor_subregion.Items.Clear();
-			object[] a;
-			switch (visitor_country.SelectedIndex)
-			{
-				case 9:
-					a= new object[helper_subregion_argentina.Items.Count];
-					helper_subregion_argentina.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 12:
-					a = new object[helper_subregion_australia.Items.Count];
-					helper_subregion_australia.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 28:
-					a = new object[helper_subregion_brazil.Items.Count];
-					helper_subregion_brazil.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 36:
-					a = new object[helper_subregion_canada.Items.Count];
-					helper_subregion_canada.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 43:
-					a = new object[helper_subregion_china.Items.Count];
-					helper_subregion_china.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 72:
-					a = new object[helper_subregion_finland.Items.Count];
-					helper_subregion_finland.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 73:
-					a = new object[helper_subregion_france.Items.Count];
-					helper_subregion_france.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 79:
-					a = new object[helper_subregion_germany.Items.Count];
-					helper_subregion_germany.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 95:
-					a = new object[helper_subregion_india.Items.Count];
-					helper_subregion_india.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 102:
-					a = new object[helper_subregion_italy.Items.Count];
-					helper_subregion_italy.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 105:
-					a = new object[helper_subregion_japan.Items.Count];
-					helper_subregion_japan.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 155:
-					a = new object[helper_subregion_norway.Items.Count];
-					helper_subregion_norway.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 166:
-					a = new object[helper_subregion_poland.Items.Count];
-					helper_subregion_poland.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 174:
-					a = new object[helper_subregion_russia.Items.Count];
-					helper_subregion_russia.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 195:
-					a = new object[helper_subregion_spain.Items.Count];
-					helper_subregion_spain.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 200:
-					a = new object[helper_subregion_sweeden.Items.Count];
-					helper_subregion_sweeden.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 218:
-					a = new object[helper_subregion_england.Items.Count];
-					helper_subregion_england.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				case 220:
-					a = new object[helper_subregion_USA.Items.Count];
-					helper_subregion_USA.Items.CopyTo(a,0);
-					visitor_subregion.Items.AddRange(a);
-					break;
-				default:
-					visitor_subregion.Items.Add("0 None");
-					break;
-			}
+			fill_subregion(visitor_subregion, visitor_country.SelectedIndex);
 		}
-		int[] country_subbed = new int[]
-		{
-			009, 012, 028, 036, 043, 072, 073, 079, 095, 102,
-			105, 155, 166, 174, 195, 200, 218, 220
-		};
 		void load_visitor()
 		{
 			
@@ -591,23 +367,16 @@ namespace BW_tool
 			visitor_shout.Text = ja.visitor[(int)visitor.Value].shout;
 			visitor_greeting.Text = ja.visitor[(int)visitor.Value].greeting;
 			visitor_farewell.Text = ja.visitor[(int)visitor.Value].farewell;
-			visitor_gender.SelectedIndex = ja.visitor[(int)visitor.Value].gender;
+			selectSafe(visitor_gender, ja.visitor[(int)visitor.Value].gender);
 			
-			visitor_country.SelectedIndex = ja.visitor[(int)visitor.Value].country;
-			visitor_handleCountry();
-			int i = 0;
-			for (i=0; i<country_subbed.Length; i++)
-			{
-				if (ja.visitor[(int)visitor.Value].country == country_subbed[i]){
-					visitor_subregion.SelectedIndex = ja.visitor[(int)visitor.Value].subregion;	
-					break;
-				}
-			}
+			selectSafe(visitor_country, ja.visitor[(int)visitor.Value].country);
+			fill_subregion(visitor_subregion, ja.visitor[(int)visitor.Value].country);
+			selectSafe(visitor_subregion, ja.visitor[(int)visitor.Value].subregion);
 			visitor_sprite.Value = ja.visitor[(int)visitor.Value].sprite;
 			load_visitor_sprite();
 			
-			visitor_date.Value = ja.visitor[(int)visitor.Value].met;
-			visitor_recruit.Value = ja.visitor[(int)visitor.Value].recruitlvl;
+			visitor_date.Value = clampDate(visitor_date, ja.visitor[(int)visitor.Value].met);
+			visitor_recruit.Value = clampValue(visitor_recruit, ja.visitor[(int)visitor.Value].citylvl);
 
 			visitor_ishuman.Checked = ja.visitor[(int)visitor.Value].isplayer;		
 		}
@@ -617,14 +386,14 @@ namespace BW_tool
 			ja.visitor[(int)visitor.Value].shout = visitor_shout.Text;
 			ja.visitor[(int)visitor.Value].greeting = visitor_greeting.Text;
 			ja.visitor[(int)visitor.Value].farewell = visitor_farewell.Text;
-			ja.visitor[(int)visitor.Value].gender = visitor_gender.SelectedIndex;
+			ja.visitor[(int)visitor.Value].gender = index_or_zero(visitor_gender);
 			
 
-			ja.visitor[(int)visitor.Value].country = visitor_country.SelectedIndex;
-			ja.visitor[(int)visitor.Value].subregion = visitor_subregion.SelectedIndex;
+			ja.visitor[(int)visitor.Value].country = index_or_zero(visitor_country);
+			ja.visitor[(int)visitor.Value].subregion = index_or_zero(visitor_subregion);
 			ja.visitor[(int)visitor.Value].sprite = (int)visitor_sprite.Value;
 			ja.visitor[(int)visitor.Value].met = visitor_date.Value;
-			ja.visitor[(int)visitor.Value].recruitlvl = (int)visitor_recruit.Value;
+			ja.visitor[(int)visitor.Value].citylvl = (int)visitor_recruit.Value;
 
 			ja.visitor[(int)visitor.Value].isplayer = visitor_ishuman.Checked;
 		}
@@ -701,6 +470,12 @@ namespace BW_tool
 
 	public class AVENUE
 	    {
+			//Block 67 = GMDATA_ID_RESORT. RESONANCE_RESORT_SV is:
+			//  0x0000 recv_buff   8 byte header + 8 x RESORT_RECV_DATA (196)
+			//  0x0628 proxy_buff  4 byte header + 12 x RESORT_PROXY_DATA (96)
+			//  0x0AAC people_all  8 residents (196) + 4 secretaries (88) + owner (196) + 4
+			//  0x12F4 city_data   236 bytes
+			//The block is padded to 5800 bytes, so anything past 0x13E0 is slack.
 			internal int Size = MainForm.save.getBlockLength(67);//Block 67
 	
 	        public byte[] Data;
@@ -888,15 +663,15 @@ namespace BW_tool
 	        {
 	            get
 	            {
-	                return TrimFromFFFF(Encoding.Unicode.GetString(Data, 0x12F4, 0x1A))
+	                return TrimFromFFFF(Encoding.Unicode.GetString(Data, 0x12F4, 0x2A))
 	                    .Replace("\uE08F", "\u2640") // nidoran
 	                    .Replace("\uE08E", "\u2642") // nidoran
 	                    .Replace("\u2019", "\u0027"); // farfetch'd
 	            }
 	            set
 	            {
-	                if (value.Length > 0x1A/2)
-	                    value = value.Substring(0, 0x1A/2); // Hard cap
+	                if (value.Length > 20)
+	                    value = value.Substring(0, 20); // RESORT_CITY_NAME_BUFF_MAX
 	                string TempNick = value // Replace Special Characters and add Terminator
 	                    .Replace("\u2640", "\uE08F") // nidoran
 	                    .Replace("\u2642", "\uE08E") // nidoran
@@ -909,15 +684,15 @@ namespace BW_tool
 	        {
 	            get
 	            {
-	                return TrimFromFFFF(Encoding.Unicode.GetString(Data, 0x131E, 0x10))
+	                return TrimFromFFFF(Encoding.Unicode.GetString(Data, 0x131E, 0x2A))
 	                    .Replace("\uE08F", "\u2640") // nidoran
 	                    .Replace("\uE08E", "\u2642") // nidoran
 	                    .Replace("\u2019", "\u0027"); // farfetch'd
 	            }
 	            set
 	            {
-	                if (value.Length > 0x10/2)
-	                    value = value.Substring(0, 0x10/2); // Hard cap
+	                if (value.Length > 20)
+	                    value = value.Substring(0, 20); // RESORT_MY_NAME_BUFF_MAX
 	                string TempNick = value // Replace Special Characters and add Terminator
 	                    .Replace("\u2640", "\uE08F") // nidoran
 	                    .Replace("\u2642", "\uE08E") // nidoran
@@ -986,10 +761,11 @@ START OFFSET: 23C00
 	            }
 	            set
 	            {
+	            	//sex is bits 4-7 of 0x22, the low nibble is a separate field
 	            	if (value == 1)
-	            		Data[0x22] = 0x10;
+	            		Data[0x22] = (byte)((Data[0x22] & 0x0F) | 0x10);
 	            	else
-	            		Data[0x22] = 0;
+	            		Data[0x22] = (byte)(Data[0x22] & 0x0F);
 	            }
 	        }
 	        public string text1
@@ -1034,6 +810,7 @@ START OFFSET: 23C00
 	                Encoding.Unicode.GetBytes(TempNick).CopyTo(Data, 0x3C);
 	            }
 	        }
+	        //RESORT_PROXY_DATA.present_bit at 0x4F
 	        public bool spoken
 	        {
 	            get
@@ -1158,15 +935,21 @@ START OFFSET: 23C00
 	                Encoding.Unicode.GetBytes(TempNick).CopyTo(Data, 0x44);
 	            }
 	        }
+	        //RESORT_BASIC1_DATA.objcode is a u16 at 0x2A. Writing only the low byte
+	        //left the high byte of the previous value in place.
 	        public int sprite
 	        {
 	            get
 	            {
-	            	return Data[0x2A];
+	            	int objcode = BitConverter.ToUInt16(getData(0x2A, 2), 0);
+	            	return objcode > 0xFF ? 0xFF : objcode; //sprite sheet only has 256
 	            }
 	            set
 	            {
-	            	Data[0x2A] = ( value > 0xFF ? (byte)0xFF : (byte) value);
+	            	int objcode = value;
+	            	if (objcode < 0)    objcode = 0;
+	            	if (objcode > 0xFF) objcode = 0xFF;
+	            	setData(BitConverter.GetBytes((UInt16)objcode), 0x2A);
 	            }
 	        }
 	        public int country
@@ -1195,10 +978,7 @@ START OFFSET: 23C00
 	        {
 	            get
 	            {
-	            	if (Data[0x30] != 0 && Data[0x31] != 0 && Data[0x32] != 0)
-	            		return new DateTime(2000+Data[0x30], Data[0x31], Data[0x32]);
-	            	else
-	            		return new DateTime(2000, 1, 1);
+	            	return safeDate(Data[0x30], Data[0x31], Data[0x32]);
 	            }
 	            set
 	            {
@@ -1206,6 +986,16 @@ START OFFSET: 23C00
 	            	Data[0x31] = (byte) value.Month;
 	            	Data[0x32] = (byte) value.Day;
 	            }
+	        }
+	        //A stored month/day of 0, 13, 40... would throw out of the DateTime
+	        //constructor and take the whole form down with it
+	        internal static DateTime safeDate(int year, int month, int day)
+	        {
+	            if (month < 1 || month > 12 || day < 1 || year > 99)
+	                return new DateTime(2000, 1, 1);
+	            if (day > DateTime.DaysInMonth(2000 + year, month))
+	                return new DateTime(2000, 1, 1);
+	            return new DateTime(2000 + year, month, day);
 	        }
 	        //Helper functions from pkhex
 	        internal static string TrimFromFFFF(string input)
@@ -1305,32 +1095,46 @@ START OFFSET: 23C00
 	            }
 	            set
 	            {
+	            	//sex is bits 4-7 of 0x22, the low nibble is a separate field
 	            	if (value == 1)
-	            		Data[0x22] = 0x10;
+	            		Data[0x22] = (byte)((Data[0x22] & 0x0F) | 0x10);
 	            	else
-	            		Data[0x22] = 0;
+	            		Data[0x22] = (byte)(Data[0x22] & 0x0F);
 	            }
 	        }
+	        //RESORT_BASIC1_DATA.objcode is a u16 at 0x2A. Writing only the low byte
+	        //left the high byte of the previous value in place.
 	        public int sprite
 	        {
 	            get
 	            {
-	            	return Data[0x2A];
+	            	int objcode = BitConverter.ToUInt16(getData(0x2A, 2), 0);
+	            	return objcode > 0xFF ? 0xFF : objcode; //sprite sheet only has 256
 	            }
 	            set
 	            {
-	            	Data[0x2A] = ( value > 0xFF ? (byte)0xFF : (byte) value);
+	            	int objcode = value;
+	            	if (objcode < 0)    objcode = 0;
+	            	if (objcode > 0xFF) objcode = 0xFF;
+	            	setData(BitConverter.GetBytes((UInt16)objcode), 0x2A);
 	            }
 	        }
-	        public int recruitlvl
+	        //RESORT_BASIC2_DATA at 0x2C packs "u8 special_deliverly:1; u8 city_lv:7;",
+	        //LSB first, so the level is the byte shifted right by one. Reading the
+	        //raw byte showed double the real value.
+	        public int citylvl
 	        {
 	            get
 	            {
-	            	return Data[0x2C];
+	            	return (Data[0x2C] >> 1) & 0x7F;
 	            }
 	            set
 	            {
-	            	Data[0x2C] = ( value > 0xFF ? (byte)0xFF : (byte) value);
+	            	int lv = value;
+	            	if (lv < 0)   lv = 0;
+	            	if (lv > 100) lv = 100; //RESORT_BASIC2_DATA_IsValid rejects above 100
+	            	//special_deliverly must stay 0 on a legal save, but preserve it anyway
+	            	Data[0x2C] = (byte)((Data[0x2C] & 0x01) | (lv << 1));
 	            }
 	        }
 	        public string greeting
@@ -1375,6 +1179,7 @@ START OFFSET: 23C00
 	                Encoding.Unicode.GetBytes(TempNick).CopyTo(Data, 0x90);
 	            }
 	        }
+	        //Low byte of RESORT_RECV_DATA.present_bit (u16 at 0xA0)
 	        public bool isplayer
 	        {
 	            get
@@ -1396,10 +1201,7 @@ START OFFSET: 23C00
 	        {
 	            get
 	            {
-	            	if (Data[0xA3] != 0 && Data[0xA4] != 0 && Data[0xA5] != 0)
-	            		return new DateTime(2000+Data[0xA3], Data[0xA4], Data[0xA5]);
-	            	else
-	            		return new DateTime(2000, 1, 1);
+	            	return AV_HELPER.safeDate(Data[0xA3], Data[0xA4], Data[0xA5]);
 	            }
 	            set
 	            {
@@ -1409,7 +1211,9 @@ START OFFSET: 23C00
 	            }
 	        }
 	        
-	        public int av_occupant_rank //Rank of player's own avenue, visitors use it. Disabled since not used in gui
+	        //RESORT_RECV_DATA.want_spot - which shop this person wants to visit.
+	        //Not the avenue rank (that is city_lv at 0x2C). Unused by the gui.
+	        public int want_spot
 	        {
 	            get
 	            {
@@ -1421,7 +1225,14 @@ START OFFSET: 23C00
 	            }
 	        }
 	        
-	        public int shop_rank
+	        //RESORT_INSTITUTION_DATA sits at 0xAC:
+	        //  0xAC u8  dummy
+	        //  0xAD u8  lv
+	        //  0xAE u16 exp
+	        //  0xB0 u32 bit           (event bitfield)
+	        //  0xB4 u16 institutionID (0xFFFF when there is no shop)
+	        //  0xB6 u16 work
+	        public int shop_facility_lv
 	        {
 	            get
 	            {
@@ -1437,34 +1248,37 @@ START OFFSET: 23C00
 	        {
 	            get
 	            {
-	            	return BitConverter.ToUInt16(getData(0xAD, 2), 0);
+	            	//was reading 0xAD, which is lv plus the low byte of exp, and
+	            	//writing it wiped the facility level
+	            	return BitConverter.ToUInt16(getData(0xAE, 2), 0);
 	            }
 	            set
 	            {
 	            	UInt16 exp = 0;
 	            	if (value > 0xFFFF)
 	            		exp = (UInt16)0xFFFF;
+	            	else if (value < 0)
+	            		exp = 0;
 	            	else
 	            		exp = (UInt16) value;
-	            	setData(BitConverter.GetBytes(exp), 0xAD);
+	            	setData(BitConverter.GetBytes(exp), 0xAE);
 	            }
 	        }
 	        
+	        //bit 0 of RESORT_INSTITUTION_DATA.bit - the rest of the byte holds
+	        //other event bits, so don't overwrite the whole thing
 	        public bool inventory
 	        {
 	            get
 	            {
-	            	if (Data[0xB0] == 1)
-	            		return true;
-	            	else
-	            		return false;
+	            	return (Data[0xB0] & 0x01) != 0;
 	            }
 	            set
 	            {
 	            	if (value == true)
-	            		Data[0xB0] = (byte) 1;
+	            		Data[0xB0] |= 0x01;
 	            	else
-	            		Data[0xB0] = (byte) 0;
+	            		Data[0xB0] &= 0xFE;
 	            }
 	        }
 	        

@@ -674,7 +674,7 @@ namespace BW_tool
 			// 
 			this.shop_recruit.Location = new System.Drawing.Point(293, 145);
 			this.shop_recruit.Maximum = new decimal(new int[] {
-			255,
+			100,
 			0,
 			0,
 			0});
@@ -1167,7 +1167,7 @@ namespace BW_tool
 			// 
 			this.visitor_recruit.Location = new System.Drawing.Point(293, 145);
 			this.visitor_recruit.Maximum = new decimal(new int[] {
-			255,
+			100,
 			0,
 			0,
 			0});
