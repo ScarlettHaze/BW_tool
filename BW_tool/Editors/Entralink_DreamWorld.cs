@@ -434,12 +434,17 @@ namespace BW_tool
 			//Adds every species in the current Dream World area to the forest,
 			//each with a random (valid) gender, its documented idle animation,
 			//and a random move - B or C, except Magikarp which only ever gets A or B.
+			//BW-exclusive species are skipped on a B2W2 save and vice versa.
+			//If the current forest area fills up, remaining species spill into the next area.
 			//Not available for Pokemon Cafe Forest or PGL Promotions.
 			if (world == 7 || world >= 8)
 			{
 				this.Close();
 				return;
 			}
+			
+			int startArea = Entralink.forest.Area;
+			bool ranOutOfRoom = false;
 			
 			Random rnd = new Random(Guid.NewGuid().GetHashCode());
 			int count = speciesbox.Items.Count;
@@ -448,11 +453,32 @@ namespace BW_tool
 			{
 				int dex = world_species[world][i];
 				
+				//Skip species that don't belong on this cart version
+				bool skip = false;
+				int j = 0;
+				if (MainForm.save.B2W2 == true)
+				{
+					for (j = 0; j < world_BW1_exclusives[world].Length; j++)
+					{
+						if (world_BW1_exclusives[world][j] == dex)
+							skip = true;
+					}
+				}
+				else
+				{
+					for (j = 0; j < world_BW2_exclusives[world].Length; j++)
+					{
+						if (world_BW2_exclusives[world][j] == dex)
+							skip = true;
+					}
+				}
+				if (skip)
+					continue;
+				
 				//Work out which genders are actually valid for this species
 				bool femaleOnly = false;
 				bool maleOnly = false;
 				bool genderless = false;
-				int j = 0;
 				for (j = 0; j < Entralink.BW_femaleonly.Length; j++)
 				{
 					if (dex == Entralink.BW_femaleonly[j])
@@ -498,11 +524,57 @@ namespace BW_tool
 					frm = 1;
 				
 				UInt32 pkm = Entralink.forest.create_pkm(dex, mv, gnd, frm, anim);
-				Entralink.forest.add_pkm(pkm);
+				if (AddWithAreaSpillover(pkm) == false)
+				{
+					ranOutOfRoom = true;
+					break; //Every area from here on is also full, no point continuing
+				}
 			}
 			
+			if (ranOutOfRoom)
+				MessageBox.Show("Ran out of free slots in every area - not all species could be added.");
+			
+			Entralink.forest.Area = startArea; //Restore the area that was selected before Add All ran
 			Entralink.dream_pkm = 0;
 			this.Close();
+		}
+		
+		//Tries to place pkm in the currently selected forest area; if that area is full,
+		//moves on to the next area (and the one after that, etc.) until it finds room.
+		//Returns false only once every remaining area has been tried and all are full.
+		private bool AddWithAreaSpillover(UInt32 pkm)
+		{
+			int area = Entralink.forest.Area;
+			while (area < 28)
+			{
+				Entralink.forest.Area = area;
+				if (AddToCurrentArea(pkm))
+					return true;
+				area++;
+			}
+			return false;
+		}
+		
+		//Places pkm in the first empty slot of the forest's currently selected area.
+		//Returns false if that area has no empty slots.
+		private bool AddToCurrentArea(UInt32 pkm)
+		{
+			int max = (Entralink.forest.Area > 0 && Entralink.forest.Area < 4) ? 10 : 20;
+			int savedIndex = Entralink.forest.Indexpkm;
+			
+			for (int idx = 0; idx < max; idx++)
+			{
+				Entralink.forest.Indexpkm = idx;
+				if (Entralink.forest.is_pkm_empty())
+				{
+					Entralink.forest.edit_pkm(pkm);
+					Entralink.forest.Indexpkm = savedIndex;
+					return true;
+				}
+			}
+			
+			Entralink.forest.Indexpkm = savedIndex;
+			return false;
 		}
 		void SpeciesboxSelectedIndexChanged(object sender, EventArgs e)
 		{
