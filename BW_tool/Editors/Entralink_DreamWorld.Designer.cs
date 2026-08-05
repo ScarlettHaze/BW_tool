@@ -28,6 +28,7 @@ namespace BW_tool
 		private System.Windows.Forms.Label area_label;
 		private System.Windows.Forms.Button ok_but;
 		private System.Windows.Forms.Button cancel_but;
+		private System.Windows.Forms.Button addall_but;
 		private System.Windows.Forms.Label exclusive_label;
 		private System.Windows.Forms.ComboBox moveboxC;
 		private System.Windows.Forms.ComboBox moveboxA;
@@ -75,6 +76,7 @@ namespace BW_tool
 			this.area_label = new System.Windows.Forms.Label();
 			this.ok_but = new System.Windows.Forms.Button();
 			this.cancel_but = new System.Windows.Forms.Button();
+			this.addall_but = new System.Windows.Forms.Button();
 			this.exclusive_label = new System.Windows.Forms.Label();
 			this.Move.SuspendLayout();
 			this.groupBox1.SuspendLayout();
@@ -2003,6 +2005,16 @@ namespace BW_tool
 			this.cancel_but.UseVisualStyleBackColor = true;
 			this.cancel_but.Click += new System.EventHandler(this.Cancel_butClick);
 			// 
+			// addall_but
+			// 
+			this.addall_but.Location = new System.Drawing.Point(15, 313);
+			this.addall_but.Name = "addall_but";
+			this.addall_but.Size = new System.Drawing.Size(176, 23);
+			this.addall_but.TabIndex = 8;
+			this.addall_but.Text = "Add All Species";
+			this.addall_but.UseVisualStyleBackColor = true;
+			this.addall_but.Click += new System.EventHandler(this.Addall_butClick);
+			// 
 			// exclusive_label
 			// 
 			this.exclusive_label.ForeColor = System.Drawing.Color.Red;
@@ -2017,8 +2029,9 @@ namespace BW_tool
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(206, 322);
+			this.ClientSize = new System.Drawing.Size(206, 352);
 			this.Controls.Add(this.exclusive_label);
+			this.Controls.Add(this.addall_but);
 			this.Controls.Add(this.cancel_but);
 			this.Controls.Add(this.ok_but);
 			this.Controls.Add(this.area_label);

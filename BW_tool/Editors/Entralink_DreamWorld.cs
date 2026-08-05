@@ -40,6 +40,8 @@ namespace BW_tool
 				pgl_region_box.Visible = false;
 				region_lab.Visible = false;
 				move_lab.Visible = false;
+				
+				addall_but.Visible = (DW != 7); //Skip Pokemon Cafe Forest
 			}
 			else if (DW == 8)
 			{
@@ -54,6 +56,8 @@ namespace BW_tool
 				pgl_region_box.Visible = true;
 				region_lab.Visible = true;
 				move_lab.Visible = true;
+				
+				addall_but.Visible = false;
 			}
 			
 			//
@@ -423,6 +427,81 @@ namespace BW_tool
 		}
 		void Cancel_butClick(object sender, EventArgs e)
 		{
+			this.Close();
+		}
+		void Addall_butClick(object sender, EventArgs e)
+		{
+			//Adds every species in the current Dream World area to the forest,
+			//each with a random (valid) gender, its documented idle animation,
+			//and a random move - B or C, except Magikarp which only ever gets A or B.
+			//Not available for Pokemon Cafe Forest or PGL Promotions.
+			if (world == 7 || world >= 8)
+			{
+				this.Close();
+				return;
+			}
+			
+			Random rnd = new Random(Guid.NewGuid().GetHashCode());
+			int count = speciesbox.Items.Count;
+			int i = 0;
+			for (i = 0; i < count; i++)
+			{
+				int dex = world_species[world][i];
+				
+				//Work out which genders are actually valid for this species
+				bool femaleOnly = false;
+				bool maleOnly = false;
+				bool genderless = false;
+				int j = 0;
+				for (j = 0; j < Entralink.BW_femaleonly.Length; j++)
+				{
+					if (dex == Entralink.BW_femaleonly[j])
+						femaleOnly = true;
+				}
+				for (j = 0; j < Entralink.BW_maleonly.Length; j++)
+				{
+					if (dex == Entralink.BW_maleonly[j])
+						maleOnly = true;
+				}
+				for (j = 0; j < Entralink.BW_genderless.Length; j++)
+				{
+					if (dex == Entralink.BW_genderless[j])
+						genderless = true;
+				}
+				
+				int gnd = 0;
+				if (femaleOnly)
+					gnd = 1;
+				else if (maleOnly)
+					gnd = 0;
+				else if (genderless)
+					gnd = 2;
+				else
+					gnd = rnd.Next(2); //Random male/female
+				
+				//Same documented per-species/gender animation used by the single-add flow
+				int anim = form_anim(i, gnd);
+				
+				//Magikarp (dex 129) always gets a random A/B; anyone else without a documented
+				//C move (-1) is treated the same way - random A/B. Everyone else gets random B/C.
+				int[] atkEntry = world_attacks[world][i];
+				bool hasC = atkEntry.Length > 2 && atkEntry[2] != -1;
+				int atkIndex = 0;
+				if (dex == 129 || !hasC)
+					atkIndex = rnd.Next(2);       //0 = A, 1 = B
+				else
+					atkIndex = rnd.Next(2) + 1;   //1 = B, 2 = C
+				int mv = atkEntry[atkIndex];
+				
+				int frm = 0;
+				if (world == 2 && (i == 25 || i == 36)) //Blue Basculin, East Sea Shellos
+					frm = 1;
+				
+				UInt32 pkm = Entralink.forest.create_pkm(dex, mv, gnd, frm, anim);
+				Entralink.forest.add_pkm(pkm);
+			}
+			
+			Entralink.dream_pkm = 0;
 			this.Close();
 		}
 		void SpeciesboxSelectedIndexChanged(object sender, EventArgs e)
@@ -906,7 +985,11 @@ namespace BW_tool
 		/// </summary>
 		private int form_anim(int gnd)
 		{
-			int sel = speciesbox.SelectedIndex;
+			return form_anim(speciesbox.SelectedIndex, gnd);
+		}
+		
+		private int form_anim(int sel, int gnd)
+		{
 			if (world < 0 || world >= world_anims.Length)
 				return random_form_anim();
 			if (sel < 0 || sel >= world_anims[world].Length)
@@ -956,16 +1039,32 @@ namespace BW_tool
 	    	
 	    	if (world < 8)
 	    	{
-		    	if (atkA.Checked == true)
-		    		atk = 0;
-		    	else if (atkB.Checked == true)
-		    		atk = 1;
-		    	else if (atkC.Checked == true)
-		    		atk = 2;
+		    	bool isMagikarp = (world_species[world][speciesbox.SelectedIndex] == 129);
 		    	
-		    	moveboxA.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][0];
-		    	movebox.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][1];
-		    	moveboxC.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][2];
+		    	//Magikarp has no usable C move - lock it out entirely
+		    	atkC.Enabled = !isMagikarp;
+		    	moveboxC.Enabled = !isMagikarp;
+		    	
+		    	if (isMagikarp && atkC.Checked == true)
+		    	{
+		    		atkB.Checked = true; //Triggers update_atk() again with C unchecked
+		    		return;
+		    	}
+		    	
+	    		if (atkA.Checked == true)
+	    			atk = 0;
+	    		else if (atkB.Checked == true)
+	    			atk = 1;
+	    		else if (atkC.Checked == true)
+	    			atk = 2;
+	    		
+	    		moveboxA.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][0];
+	    		movebox.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][1];
+	    		
+	    		if (isMagikarp)
+	    			moveboxC.SelectedIndex = -1; //No C move for Magikarp
+	    		else
+	    			moveboxC.SelectedIndex = world_attacks[world][speciesbox.SelectedIndex][2];
 	    	}else if (world == 8)
 	    	{
 	    		movebox.SelectedIndex = PGL_attacks[speciesbox.SelectedIndex];
