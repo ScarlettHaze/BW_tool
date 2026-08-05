@@ -9,6 +9,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace BW_tool
 {
@@ -431,11 +432,14 @@ namespace BW_tool
 		}
 		void Addall_butClick(object sender, EventArgs e)
 		{
-			//Adds every species in the current Dream World area to the forest,
-			//each with a random (valid) gender, its documented idle animation,
-			//and a random move - B or C, except Magikarp which only ever gets A or B.
+			//Adds every species in the current Dream World area to the forest - one male and
+			//one female entry each (species with only one valid gender just get that one),
+			//each with its documented idle animation, and a random move - B or C, except
+			//Magikarp which only ever gets A or B.
 			//BW-exclusive species are skipped on a B2W2 save and vice versa.
-			//If the current forest area fills up, remaining species spill into the next area.
+			//Everything is placed in random slots (in random order) so it doesn't look like
+			//a tidy, machine-generated list. If the current forest area fills up, remaining
+			//entries spill into the next area.
 			//Not available for Pokemon Cafe Forest or PGL Promotions.
 			if (world == 7 || world >= 8)
 			{
@@ -443,10 +447,8 @@ namespace BW_tool
 				return;
 			}
 			
-			int startArea = Entralink.forest.Area;
-			bool ranOutOfRoom = false;
-			
 			Random rnd = new Random(Guid.NewGuid().GetHashCode());
+			List<UInt32> toAdd = new List<UInt32>();
 			int count = speciesbox.Items.Count;
 			int i = 0;
 			for (i = 0; i < count; i++)
@@ -495,35 +497,54 @@ namespace BW_tool
 						genderless = true;
 				}
 				
-				int gnd = 0;
+				int[] gendersToAdd;
 				if (femaleOnly)
-					gnd = 1;
+					gendersToAdd = new int[] { 1 };
 				else if (maleOnly)
-					gnd = 0;
+					gendersToAdd = new int[] { 0 };
 				else if (genderless)
-					gnd = 2;
+					gendersToAdd = new int[] { 2 };
 				else
-					gnd = rnd.Next(2); //Random male/female
+					gendersToAdd = new int[] { 0, 1 }; //One of each - male and female
 				
-				//Same documented per-species/gender animation used by the single-add flow
-				int anim = form_anim(i, gnd);
-				
-				//Magikarp (dex 129) always gets a random A/B; anyone else without a documented
-				//C move (-1) is treated the same way - random A/B. Everyone else gets random B/C.
-				int[] atkEntry = world_attacks[world][i];
-				bool hasC = atkEntry.Length > 2 && atkEntry[2] != -1;
-				int atkIndex = 0;
-				if (dex == 129 || !hasC)
-					atkIndex = rnd.Next(2);       //0 = A, 1 = B
-				else
-					atkIndex = rnd.Next(2) + 1;   //1 = B, 2 = C
-				int mv = atkEntry[atkIndex];
-				
-				int frm = 0;
-				if (world == 2 && (i == 25 || i == 36)) //Blue Basculin, East Sea Shellos
-					frm = 1;
-				
-				UInt32 pkm = Entralink.forest.create_pkm(dex, mv, gnd, frm, anim);
+				foreach (int gnd in gendersToAdd)
+				{
+					//Same documented per-species/gender animation used by the single-add flow
+					int anim = form_anim(i, gnd);
+					
+					//Magikarp (dex 129) always gets a random A/B; anyone else without a documented
+					//C move (-1) is treated the same way - random A/B. Everyone else gets random B/C.
+					int[] atkEntry = world_attacks[world][i];
+					bool hasC = atkEntry.Length > 2 && atkEntry[2] != -1;
+					int atkIndex = 0;
+					if (dex == 129 || !hasC)
+						atkIndex = rnd.Next(2);       //0 = A, 1 = B
+					else
+						atkIndex = rnd.Next(2) + 1;   //1 = B, 2 = C
+					int mv = atkEntry[atkIndex];
+					
+					int frm = 0;
+					if (world == 2 && (i == 25 || i == 36)) //Blue Basculin, East Sea Shellos
+						frm = 1;
+					
+					toAdd.Add(Entralink.forest.create_pkm(dex, mv, gnd, frm, anim));
+				}
+			}
+			
+			//Shuffle so species/genders don't land in the forest in neat, predictable order
+			int k = 0;
+			for (k = toAdd.Count - 1; k > 0; k--)
+			{
+				int swapWith = rnd.Next(k + 1);
+				UInt32 temp = toAdd[k];
+				toAdd[k] = toAdd[swapWith];
+				toAdd[swapWith] = temp;
+			}
+			
+			int startArea = Entralink.forest.Area;
+			bool ranOutOfRoom = false;
+			foreach (UInt32 pkm in toAdd)
+			{
 				if (AddWithAreaSpillover(pkm) == false)
 				{
 					ranOutOfRoom = true;
